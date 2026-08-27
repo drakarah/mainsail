@@ -48,6 +48,7 @@ export interface GuiState {
     editor: {
         escToClose: boolean
         confirmUnsavedChanges: boolean
+        klipperDocsTooltips: boolean
         klipperRestartMethod: 'FIRMWARE_RESTART' | 'RESTART'
         tabSize: number
         fileStructureSidebar: boolean
@@ -216,6 +217,7 @@ export interface GuiState {
             largeFilamentStatus: boolean
             showLogos: boolean
             showName: boolean
+            showClimate: boolean
             showUnavailableSpoolColor: boolean
         }
     }

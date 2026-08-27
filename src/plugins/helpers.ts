@@ -14,6 +14,7 @@ import {
 } from '@mdi/js'
 import Vue from 'vue'
 import { VColorPickerColor } from '@/types/vuetify'
+import DOMPurify from 'dompurify'
 
 export const isRecord = (value: unknown): value is Record<string, unknown> => {
     return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -119,9 +120,11 @@ export function formatConsoleMessage(message: string): string {
     message = message.replace(/^echo:/g, '')
     // remove debug
     message = message.replace(/^debug:/g, '')
-    // replace linebreaks with html <br>
+    // replace linebreaks with HTML <br>
     message = message.replace('\n// ', '<br>')
     message = message.replace(/\r\n|\r|\n/g, '<br>')
+    // remove all dirty HTML code
+    message = DOMPurify.sanitize(message)
 
     return message.trim()
 }
@@ -256,10 +259,7 @@ export function getMacroParams(macro: { gcode: string }): PrinterStateMacroParam
         }
         const name = params[1]
         const t: 'int' | 'string' | 'double' | null = (params[2] ?? params[4] ?? null) as
-            | 'int'
-            | 'string'
-            | 'double'
-            | null
+            'int' | 'string' | 'double' | null
         const def = params[3] ?? null
         ret[`${name}`] = {
             type: t,
