@@ -1,3 +1,38 @@
+# Mainsail fork with toolchanger extras
+
+This is a fork of [Mainsail](https://github.com/mainsail-crew/mainsail), kept in sync with upstream releases. It
+adds the following, mostly aimed at toolchanger printers
+([klipper-toolchanger](https://github.com/viesturz/klipper-toolchanger) and
+[klipper-toolchanger-easy](https://github.com/jwellman80/klipper-toolchanger-easy)):
+
+| Feature           | What it does                                                                                                                                                                                                                                   | Shown when                    |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Toolchanger panel | Dashboard panel with every tool: temperatures, filament, nozzle size, pressure advance, initialize / dock buttons                                                                                                                              | `[toolchanger]` is configured |
+| Filament mapping  | Start print dialog maps the filaments of a print to tools                                                                                                                                                                                      | always                        |
+| Tool calibration  | Page with the [axiscope](https://github.com/nic335/Axiscope) tool offset calibration UI                                                                                                                                                        | `[axiscope]` is configured    |
+| Input Shaper      | Page for [Shake&Tune](https://github.com/Frix-x/klippain-shaketune): calibrate one or all tools, review the graphs and recommendations, try values live and save them to each tool's config (or `[input_shaper]`), belts and vibrations graphs | `[shaketune]` is configured   |
+
+Everything the fork adds lives in [`src/extensions`](src/extensions/README.md), with small hooks in upstream files,
+so upstream releases merge without much trouble.
+
+## Installing
+
+Every push to `develop` publishes a release with a `mainsail.zip`, built by
+[`fork-release.yml`](.github/workflows/fork-release.yml). To install and update it from Mainsail's update manager,
+point the `[update_manager mainsail]` section in `moonraker.conf` at this repository instead of `mainsail-crew/mainsail`:
+
+```ini
+[update_manager mainsail]
+type: web
+channel: stable
+repo: drakarah/mainsail
+path: ~/mainsail
+```
+
+Restart Moonraker afterwards. Mainsail then offers this fork's latest release as an update.
+
+---
+
 <p align="center">
   <a>
     <img src="https://raw.githubusercontent.com/mainsail-crew/docs/master/assets/img/logo.png" alt='Mainsail logo' height="152">

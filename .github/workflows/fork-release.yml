@@ -1,0 +1,79 @@
+name: Fork release
+
+# Builds this fork and publishes it as a GitHub release, so Moonraker's update manager can install it
+# (point [update_manager mainsail] at this repo, see README). Runs on every push to develop, or by hand.
+# Upstream's release.yml needs mainsail-crew's secrets and doesn't work on a fork.
+
+run-name: Fork release ${{ inputs.version || github.sha }}
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: Version tag, e.g. v2.19.0-fork.1 (default v<package.json version>-<owner>.<run number>)
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fork-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # never on upstream itself
+    if: github.repository != 'mainsail-crew/mainsail'
+    name: Build and release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Build
+        run: npx vite build
+
+      - name: Version
+        id: version
+        shell: bash
+        run: |
+          VERSION="${{ inputs.version }}"
+          if [ -z "$VERSION" ]; then
+            VERSION="v$(node -p "require('./package.json').version")-${{ github.repository_owner }}.${{ github.run_number }}"
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # Moonraker compares this with the latest release of the repo in [update_manager mainsail]
+      - name: Write release_info.json
+        shell: bash
+        run: |
+          echo '{"project_name":"mainsail","project_owner":"${{ github.repository_owner }}","version":"${{ steps.version.outputs.VERSION }}"}' > dist/release_info.json
+          cat dist/release_info.json
+
+      - name: Zip
+        shell: bash
+        run: cd dist && zip -r ../mainsail.zip ./ -x '**.DS_Store'
+
+      - name: Create release
+        uses: softprops/action-gh-release@v3
+        with:
+          name: ${{ steps.version.outputs.VERSION }}
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          target_commitish: ${{ github.sha }}
+          files: ./mainsail.zip
+          generate_release_notes: true
