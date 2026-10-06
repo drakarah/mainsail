@@ -14,8 +14,10 @@ export const consoleRecorder = Vue.observable({ lines: [] as ConsoleLine[] })
 
 let started = false
 
+// the printer config only arrives after connecting
 function enabled() {
-    return store.getters['printer/checkConfig']?.('shaketune') ?? false
+    const config: Record<string, unknown> | undefined = store.state.printer?.configfile?.config
+    return !!config && Object.keys(config).some((name) => name.toLowerCase() === 'shaketune')
 }
 
 function push(line: ConsoleLine) {
@@ -50,11 +52,16 @@ export function startConsoleRecorder() {
     started = true
 
     store.subscribe((mutation) => {
-        // mainsail (re)loads the console history after (re)connecting
-        if (mutation.type === 'server/setGcodeStore') seedConsoleRecorder()
-        else if (mutation.type === 'server/addEvent' && enabled()) {
-            const { date, type, message } = mutation.payload
-            push({ date: new Date(date), type, message })
+        // an error here would break mainsail's own console, so never let one out
+        try {
+            // mainsail (re)loads the console history after (re)connecting
+            if (mutation.type === 'server/setGcodeStore') seedConsoleRecorder()
+            else if (mutation.type === 'server/addEvent' && enabled()) {
+                const { date, type, message } = mutation.payload
+                push({ date: new Date(date), type, message })
+            }
+        } catch (e) {
+            window.console.error('input shaper: console recorder failed', e)
         }
     })
 
