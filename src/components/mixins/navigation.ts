@@ -5,6 +5,7 @@ import { mdiLinkVariant, mdiViewDashboardOutline } from '@mdi/js'
 import BaseMixin from '@/components/mixins/base'
 import { PrinterStateKlipperConfig } from '@/store/printer/types'
 import { GuiNavigationStateEntry } from '@/store/gui/navigation/types'
+import { isExtensionRouteVisible } from '@/extensions/registry'
 
 export interface NaviPoint {
     type: 'link' | 'route'
@@ -126,10 +127,6 @@ export default class NavigationMixin extends Mixins(BaseMixin) {
         return this.$store.getters['gui/webcams/getWebcams'].length
     }
 
-    get toolCalibrationDefined(): boolean {
-        return this.$store.getters["printer/checkConfig"]("axiscope");
-    }
-
     @Watch('sidebarNaviFile', { immediate: true })
     async sidebarNaviFileChanged(newVal: string) {
         this.customNaviLinks = []
@@ -158,7 +155,7 @@ export default class NavigationMixin extends Mixins(BaseMixin) {
     showInNavi(route: AppRoute): boolean {
         if (['shutdown', 'error', 'disconnected'].includes(this.klippy_state) && !route.alwaysShow) return false
         else if (route.title === 'Webcam' && this.webcamCount === 0) return false
-        else if(route.name == "toolcalibration" && !this.toolCalibrationDefined) return false
+        else if (!isExtensionRouteVisible(route, this.$store.getters)) return false
         else if (route.moonrakerComponent && !this.moonrakerComponents.includes(route.moonrakerComponent)) return false
         else if (route.registeredDirectory && !this.registeredDirectories.includes(route.registeredDirectory))
             return false

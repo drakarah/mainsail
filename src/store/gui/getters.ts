@@ -3,6 +3,7 @@ import { GuiState, GuiStateDashboard, GuiStateLayoutoption } from '@/store/gui/t
 import { GuiMacrosStateMacrogroup } from '@/store/gui/macros/types'
 import { allDashboardPanels, defaultTheme, themes } from '@/store/variables'
 import { RootState, Theme } from '@/store/types'
+import { isExtensionPanelVisible } from '@/extensions/registry'
 
 export const getters: GetterTree<GuiState, RootState> = {
     theme: (state): string => {
@@ -105,6 +106,8 @@ export const getters: GetterTree<GuiState, RootState> = {
         if (!existsLedEffects) {
             allPanels = allPanels.filter((name) => name !== 'led-effects')
         }
+
+        allPanels = allPanels.filter((name) => isExtensionPanelVisible(name, rootGetters))
 
         return allPanels
     },

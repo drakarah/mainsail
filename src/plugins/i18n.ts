@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueI18n from 'vue-i18n'
+import { mergeExtensionLocales } from '@/extensions/registry'
 
 Vue.use(VueI18n)
 
@@ -17,6 +18,7 @@ export default i18n
 export async function setAndLoadLocale(lang: string) {
     const locales = await import(`../locales/${lang}.json`)
     i18n.setLocaleMessage(lang, locales.default)
+    await mergeExtensionLocales(i18n, lang)
     i18n.locale = lang
     return locales
 }

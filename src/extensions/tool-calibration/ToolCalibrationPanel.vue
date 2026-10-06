@@ -18,7 +18,7 @@
 <script lang="ts">
 import Component from 'vue-class-component'
 import { Mixins, Prop } from 'vue-property-decorator'
-import BaseMixin from '../mixins/base'
+import BaseMixin from '@/components/mixins/base'
 import Panel from '@/components/ui/Panel.vue'
 import { mdiMenuDown, mdiViewGrid, mdiAdjust } from '@mdi/js'
 

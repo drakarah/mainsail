@@ -31,8 +31,11 @@ import { BarChart, LineChart, PieChart } from 'echarts/charts'
 import { DatasetComponent, GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
 
 import { defaultMode } from './store/variables'
+import { installExtensions } from '@/extensions/install'
 
 Vue.config.productionTip = false
+
+installExtensions(Vue)
 
 Vue.directive('observe-visibility', ObserveVisibility)
 

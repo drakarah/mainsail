@@ -38,13 +38,14 @@
 <script lang="ts">
 import { Component, Mixins } from 'vue-property-decorator'
 import BaseMixin from '@/components/mixins/base'
-import ToolchangerMixin from '@/components/mixins/toolchanger'
+import ToolchangerMixin from './toolchanger'
 import { mdiArrowUpBold, mdiDotsVertical, mdiSwapVerticalBold } from '@mdi/js'
 import Panel from '@/components/ui/Panel.vue'
+import ToolchangerPanelTools from './ToolchangerPanelTools.vue'
 import { Debounce } from 'vue-debounce-decorator'
 
 @Component({
-    components: { Panel}
+    components: { Panel, ToolchangerPanelTools },
 })
 export default class ToolchangerPanel extends Mixins(BaseMixin, ToolchangerMixin) {
     mdiSwapVerticalBold = mdiSwapVerticalBold

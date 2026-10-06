@@ -12,9 +12,12 @@
 <script lang="ts">
 import { Component, Mixins } from 'vue-property-decorator'
 import BaseMixin from '@/components/mixins/base'
-import ToolchangerMixin from '@/components/mixins/toolchanger'
+import ToolchangerMixin from './toolchanger'
+import ToolchangerPanelToolsItem from './ToolchangerPanelToolsItem.vue'
 
-@Component({})
+@Component({
+    components: { ToolchangerPanelToolsItem },
+})
 export default class ToolchangerPanel extends Mixins(BaseMixin, ToolchangerMixin) {
     get rows() {
         const len = this.toolchangerToolNames.length

@@ -39,7 +39,7 @@
 <script lang="ts">
 import { Component, Mixins, Prop, Watch } from 'vue-property-decorator'
 import BaseMixin from '@/components/mixins/base'
-import ToolchangerMixin from '@/components/mixins/toolchanger'
+import ToolchangerMixin from './toolchanger'
 import { FileStateGcodefile } from '@/store/files/types'
 
 @Component

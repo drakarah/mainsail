@@ -1,3 +1,4 @@
+import { extensionMetadata, extensionPanelNames } from '@/extensions/registry'
 import { KlipperRepos, Theme } from '@/store/types'
 
 export const defaultMode = 'dark'
@@ -81,10 +82,7 @@ export const allowedMetadata = [
     'referenced_tools',
     'mmu_print',
     'filament_total',
-    'filament_colors',
-    'filament_weights',
     'filament_weight_total',
-    'filament_change_count',
     'filament_weights',
     'nozzle_diameter',
     'first_layer_bed_temp',
@@ -104,6 +102,7 @@ export const allowedMetadata = [
     'slicer_version',
     'thumbnails',
 ]
+allowedMetadata.push(...extensionMetadata)
 
 export const maxEventHistory = 500
 export const maxGcodeHistory = 50
@@ -122,11 +121,10 @@ export const allDashboardPanels = [
     'miscellaneous',
     'spoolman',
     'mmu',
-    'toolchanger',
     'temperature',
     'webcam',
-    'toolcalibration'
 ]
+allDashboardPanels.push(...extensionPanelNames)
 
 export const thumbnailSmallMin = 30
 export const thumbnailSmallMax = 64

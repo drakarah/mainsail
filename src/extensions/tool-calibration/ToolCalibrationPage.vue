@@ -12,7 +12,7 @@
 <script lang="ts">
 import { Component, Mixins } from 'vue-property-decorator'
 import BaseMixin from '@/components/mixins/base'
-import ToolCalibrationPanel from '@/components/panels/ToolCalibrationPanel.vue'
+import ToolCalibrationPanel from './ToolCalibrationPanel.vue'
 @Component({
     components: { ToolCalibrationPanel },
 })

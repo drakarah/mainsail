@@ -1,0 +1,9 @@
+{
+    "Panels": {
+        "ToolchangerPanel": {
+            "Headline": "Toolchanger",
+            "Initialize": "Initialize Toolchanger",
+            "Unselect": "Dock active tool"
+        }
+    }
+}

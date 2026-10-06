@@ -13,10 +13,10 @@
                     {{ question }}
                 </p>
             </v-card-text>
-            <start-print-dialog-toolchanger v-if="true" :file="file" :bool="bool" />
             <start-print-dialog-afc v-if="afcExists" :file="file" />
             <start-print-dialog-mmu v-else-if="existsMmu" :file="file" />
             <start-print-dialog-spoolman v-else-if="existsSpoolman" :file="file" />
+            <extension-slot name="start-print-dialog" :file="file" :show-dialog="showDialog" />
             <start-print-dialog-timelapse v-if="existsTimelapse" />
             <v-divider v-if="showDivider" class="my-0" />
             <v-card-actions>

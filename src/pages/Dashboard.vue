@@ -96,11 +96,9 @@ import MiscellaneousPanel from '@/components/panels/MiscellaneousPanel.vue'
 import SpoolmanPanel from '@/components/panels/SpoolmanPanel.vue'
 import MmuPanel from '@/components/panels/MmuPanel.vue'
 import StatusPanel from '@/components/panels/StatusPanel.vue'
-import ToolchangerPanel from '@/components/panels/ToolchangerPanel.vue'
 import ToolheadControlPanel from '@/components/panels/ToolheadControlPanel.vue'
 import TemperaturePanel from '@/components/panels/TemperaturePanel.vue'
 import WebcamPanel from '@/components/panels/WebcamPanel.vue'
-import ToolCalibrationPanel from '@/components/panels/ToolCalibrationPanel.vue'
 
 @Component({
     components: {
@@ -117,11 +115,9 @@ import ToolCalibrationPanel from '@/components/panels/ToolCalibrationPanel.vue'
         SpoolmanPanel,
         MmuPanel,
         StatusPanel,
-        ToolchangerPanel,
         ToolheadControlPanel,
         TemperaturePanel,
         WebcamPanel,
-        ToolCalibrationPanel
     },
 })
 export default class PageDashboard extends Mixins(DashboardMixin) {

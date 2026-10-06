@@ -38,7 +38,7 @@
 <script lang="ts">
 import { Component, Mixins, Prop } from 'vue-property-decorator'
 import BaseMixin from '@/components/mixins/base'
-import ToolchangerMixin from '@/components/mixins/toolchanger'
+import ToolchangerMixin from './toolchanger'
 import ExtruderMixin from '@/components/mixins/extruder'
 import { mdiUndoVariant, mdiRedoVariant, mdiTargetVariant, mdiPrinter3dNozzle } from '@mdi/js'
 

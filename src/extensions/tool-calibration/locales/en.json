@@ -1,0 +1,10 @@
+{
+    "Panels": {
+        "ToolCalibrationPanel": {
+            "Headline": "Tool calibration"
+        }
+    },
+    "Router": {
+        "Tool calibration": "Tool calibration"
+    }
+}
