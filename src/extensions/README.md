@@ -19,15 +19,15 @@ but components inside `src/extensions` must be imported explicitly.
 
 ## Hook points in upstream files
 
-| Upstream file                                 | Hook                                                           |
-| --------------------------------------------- | -------------------------------------------------------------- |
+| Upstream file                                 | Hook                                                             |
+| --------------------------------------------- | ---------------------------------------------------------------- |
 | `src/main.ts`                                 | `installExtensions(Vue)` registers panels and `<extension-slot>` |
-| `src/routes/index.ts`                         | `routes.push(...extensionRoutes)`                              |
-| `src/components/mixins/navigation.ts`         | `isExtensionRouteVisible()` in `showInNavi`                    |
-| `src/store/variables.ts`                      | `allowedMetadata` / `allDashboardPanels` push                  |
-| `src/store/gui/getters.ts`                    | `isExtensionPanelVisible()` in `getAllPossiblePanels`          |
-| `src/plugins/i18n.ts`                         | `mergeExtensionLocales()` after loading a locale               |
-| `src/components/dialogs/StartPrintDialog.vue` | `<extension-slot name="start-print-dialog">`                   |
+| `src/routes/index.ts`                         | `routes.push(...extensionRoutes)`                                |
+| `src/components/mixins/navigation.ts`         | `isExtensionRouteVisible()` in `showInNavi`                      |
+| `src/store/variables.ts`                      | `allowedMetadata` / `allDashboardPanels` push                    |
+| `src/store/gui/getters.ts`                    | `isExtensionPanelVisible()` in `getAllPossiblePanels`            |
+| `src/plugins/i18n.ts`                         | `mergeExtensionLocales()` after loading a locale                 |
+| `src/components/dialogs/StartPrintDialog.vue` | `<extension-slot name="start-print-dialog">`                     |
 
 To list them: `git diff <upstream-tag> -- src ':!src/extensions'`.
 

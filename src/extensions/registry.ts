@@ -3,9 +3,10 @@ import type { AppRoute } from '@/routes'
 import type { ExtensionComponent, ExtensionPanel, ExtensionRoute, MainsailExtension } from './types'
 import toolchanger from './toolchanger'
 import toolCalibration from './tool-calibration'
+import inputShaper from './input-shaper'
 
 // Enable or disable extensions here
-export const extensions: MainsailExtension[] = [toolchanger, toolCalibration]
+export const extensions: MainsailExtension[] = [toolchanger, toolCalibration, inputShaper]
 
 export const extensionRoutes: ExtensionRoute[] = extensions.flatMap((ext) => ext.routes ?? [])
 
@@ -33,10 +34,17 @@ export function isExtensionPanelVisible(name: string, getters: any): boolean {
 
 export async function mergeExtensionLocales(i18n: VueI18n, lang: string) {
     for (const ext of extensions) {
-        const loader = Object.entries(ext.locales ?? {}).find(([path]) => path.endsWith(`/${lang}.json`))?.[1]
-        if (!loader) continue
+        const locales = Object.entries(ext.locales ?? {})
+        const load = async (code: string) => {
+            const loader = locales.find(([path]) => path.endsWith(`/${code}.json`))?.[1]
+            return loader ? ((await loader()) as { default: VueI18n.LocaleMessageObject }).default : null
+        }
 
-        const messages = (await loader()) as { default: VueI18n.LocaleMessageObject }
-        i18n.mergeLocaleMessage(lang, messages.default)
+        // extensions may only ship English: use it for whatever the language doesn't translate
+        const english = lang !== 'en' ? await load('en') : null
+        if (english) i18n.mergeLocaleMessage(lang, english)
+
+        const messages = await load(lang)
+        if (messages) i18n.mergeLocaleMessage(lang, messages)
     }
 }

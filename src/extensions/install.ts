@@ -1,5 +1,5 @@
 import type { VueConstructor } from 'vue'
-import { extensionPanels, getExtensionSlotComponents } from './registry'
+import { extensionPanels, extensions, getExtensionSlotComponents } from './registry'
 
 // Renders every component that extensions registered for the named slot, forwarding all attributes.
 // Usage in upstream templates: <extension-slot name="start-print-dialog" :file="file" />
@@ -20,4 +20,6 @@ export function installExtensions(Vue: VueConstructor) {
 
     // Dashboard resolves panels by name (`<component :is="xyz-panel">`), so a global registration is enough
     extensionPanels.forEach((panel) => Vue.component(`${panel.name}-panel`, panel.component))
+
+    extensions.forEach((ext) => ext.setup?.())
 }

@@ -32,4 +32,6 @@ export interface MainsailExtension {
     metadata?: string[]
     // result of import.meta.glob('./locales/*.json'), deep-merged into the upstream locale
     locales?: Record<string, () => Promise<unknown>>
+    // runs once at app start; import heavy modules lazily inside it to avoid import cycles
+    setup?: () => void
 }
