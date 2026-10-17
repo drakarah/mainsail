@@ -49,7 +49,14 @@ import { mdiPlay, mdiVibrate, mdiVectorLine } from '@mdi/js'
 import InputShaperMixin from './inputShaperMixin'
 import InputShaperGraph from './InputShaperGraph.vue'
 import InputShaperProgress from './InputShaperProgress.vue'
-import { parseResultTimestamp, RunKind, RunProgress, ShakeTuneRun, summaryLines } from './inputShaper'
+import {
+    parseResultTimestamp,
+    pickSelectedResult,
+    RunKind,
+    RunProgress,
+    ShakeTuneRun,
+    summaryLines,
+} from './inputShaper'
 
 @Component({
     components: { InputShaperGraph, InputShaperProgress },
@@ -92,8 +99,8 @@ export default class InputShaperMachineCard extends Mixins(InputShaperMixin) {
     }
 
     @Watch('files', { immediate: true })
-    onFilesChanged() {
-        if (!this.selected || !this.files.includes(this.selected)) this.selected = this.files[0] ?? null
+    onFilesChanged(files: string[], previous?: string[]) {
+        this.selected = pickSelectedResult(this.selected, files, previous)
     }
 
     dateOf(path: string) {

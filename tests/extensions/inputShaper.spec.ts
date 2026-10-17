@@ -6,6 +6,7 @@ import {
     parseIncludes,
     parseResultTimestamp,
     parseRunProgress,
+    pickSelectedResult,
     planShaperSave,
     printerShaperKeys,
     readTargetValues,
@@ -438,5 +439,24 @@ describe('helpers', () => {
         expect(findToolAccelChip(config, 'tool T1')).toBe('adxl345')
         expect(findToolAccelChip(config, 'tool T0')).toBe('lis2dw T0')
         expect(findToolAccelChip(config, 'tool T2')).toBe(null)
+    })
+})
+
+describe('pickSelectedResult', () => {
+    const a = 'belts/beltscomparison_20250824_114019.png'
+    const b = 'belts/beltscomparison_20261017_161654.png'
+
+    it('selects the newest when nothing is selected or the selection is gone', () => {
+        expect(pickSelectedResult(null, [b, a])).toBe(b)
+        expect(pickSelectedResult('belts/removed.png', [b, a])).toBe(b)
+        expect(pickSelectedResult(a, [])).toBe(null)
+    })
+
+    it('follows a new result when the newest was selected', () => {
+        expect(pickSelectedResult(a, [b, a], [a])).toBe(b)
+    })
+
+    it('keeps an older result the user picked on purpose', () => {
+        expect(pickSelectedResult(a, [b, a], [b, a])).toBe(a)
     })
 })

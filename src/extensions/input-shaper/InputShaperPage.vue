@@ -452,6 +452,18 @@ export default class InputShaperPage extends Mixins(InputShaperMixin) {
         if (run && progress && (progress.done || progress.failed)) this.finishRun(run, progress)
     }
 
+    // Shake&Tune finished graphs, possibly for a run started from the console or another browser: pick up the new files
+    get graphsCreatedCount() {
+        return this.consoleLines.filter((line) => /graphs created successfully/i.test(line.message)).length
+    }
+
+    @Watch('graphsCreatedCount')
+    onGraphsCreated(count: number, previous: number) {
+        if (count <= previous || !this.resultsDir) return
+        // the graph files are written just before the message, give the file listing a moment
+        window.setTimeout(() => this.refresh(), 1500)
+    }
+
     updateDb(mutate: (db: ShakeTuneDb) => void): Promise<boolean> {
         const write = this.dbQueue.then(async () => {
             try {

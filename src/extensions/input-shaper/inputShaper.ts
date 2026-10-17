@@ -555,6 +555,14 @@ export function parseResultTimestamp(filename: string): number | null {
     return new Date(y, mo - 1, d, h, mi, s).getTime()
 }
 
+// Which result to show after the list of result files changed (newest first). Keeps what the user picked, but
+// follows along when they were looking at the newest result and a newer one shows up.
+export function pickSelectedResult(selected: string | null, files: string[], previous: string[] = []) {
+    if (!selected || !files.includes(selected)) return files[0] ?? null
+    if (previous.length && previous[0] === selected && files[0] !== selected) return files[0]
+    return selected
+}
+
 export function resultGroupKey(filename: string) {
     const name = filename.slice(filename.lastIndexOf('/') + 1)
     return name.replace(/(_axis_[xy])?\.png$/i, '')
