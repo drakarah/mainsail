@@ -1,4 +1,5 @@
 import type { MainsailExtension } from '../types'
+import { hasConfig } from '../predicates'
 
 // klipper-toolchanger integration: tool panel, filament to tool mapping in the start print dialog
 const toolchanger: MainsailExtension = {
@@ -7,7 +8,7 @@ const toolchanger: MainsailExtension = {
         {
             name: 'toolchanger',
             component: () => import('./ToolchangerPanel.vue'),
-            visible: (getters) => getters['printer/checkConfig']('toolchanger'),
+            visible: hasConfig('toolchanger'),
         },
     ],
     slots: {

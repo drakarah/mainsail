@@ -1,8 +1,9 @@
 import { mdiAdjust } from '@mdi/js'
-import type { ExtensionPredicate, MainsailExtension } from '../types'
+import type { MainsailExtension } from '../types'
+import { hasConfig } from '../predicates'
 
 // axiscope tool offset calibration page, embeds the axiscope web UI (port 3000) as an iframe
-const hasAxiscope: ExtensionPredicate = (getters) => getters['printer/checkConfig']('axiscope')
+const hasAxiscope = hasConfig('axiscope')
 
 const toolCalibration: MainsailExtension = {
     name: 'tool-calibration',

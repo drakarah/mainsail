@@ -1,5 +1,6 @@
 import { mdiSineWave } from '@mdi/js'
 import type { MainsailExtension } from '../types'
+import { hasConfig } from '../predicates'
 
 // Shake&Tune overview: input shaper calibration per tool, belts and vibrations graphs in one place
 const inputShaper: MainsailExtension = {
@@ -14,7 +15,7 @@ const inputShaper: MainsailExtension = {
             alwaysShow: false,
             showInNavi: true,
             position: 36,
-            visible: (getters) => getters['printer/checkConfig']('shaketune'),
+            visible: hasConfig('shaketune'),
         },
     ],
     locales: import.meta.glob('./locales/*.json'),
