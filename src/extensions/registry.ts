@@ -4,9 +4,10 @@ import type { ExtensionComponent, ExtensionPanel, ExtensionRoute, MainsailExtens
 import toolchanger from './toolchanger'
 import toolCalibration from './tool-calibration'
 import inputShaper from './input-shaper'
+import canbusStats from './canbus-stats'
 
 // Enable or disable extensions here
-export const extensions: MainsailExtension[] = [toolchanger, toolCalibration, inputShaper]
+export const extensions: MainsailExtension[] = [toolchanger, toolCalibration, inputShaper, canbusStats]
 
 export const extensionRoutes: ExtensionRoute[] = extensions.flatMap((ext) => ext.routes ?? [])
 

@@ -1,0 +1,27 @@
+{
+    "Router": {
+        "Canbus stats": "Canbus stats"
+    },
+    "CanbusStats": {
+        "ByStatPanelTitle": "All statistics per device",
+        "ByStatSection": "By stat",
+        "CanbusSection": "CAN bus",
+        "ClearData": "Clear data",
+        "ContextPanelTitle": "Print context",
+        "ContextSection": "Context",
+        "DataCleared": "Canbus stats history cleared",
+        "Description": "Round-trip time, retransmits, invalid frames and CPU load of the host and all MCUs on the CAN bus, aggregated in 2 second buckets. Records from app start, keeps up to 12 hours of history.",
+        "ErrorsChart": "Communication errors",
+        "HeaterChart": "Heater power",
+        "HostPanelTitle": "Host system",
+        "HostSection": "Host",
+        "LatencyChart": "Round-trip time",
+        "Live": "recording",
+        "McuSection": "MCU",
+        "NoDataYet": "Connected, but no CAN bus statistics are available yet.",
+        "PerfChart": "MCU performance",
+        "TempChart": "Temperature sensors",
+        "Title": "Canbus stats",
+        "TrafficChart": "Traffic"
+    }
+}
