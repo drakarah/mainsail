@@ -147,6 +147,10 @@
                 </v-row>
             </panel>
         </template>
+        <!-- Local snack notification (Mainsail has no global snack bus) -->
+        <v-snackbar v-model="snackbar" :timeout="3000" bottom>
+            {{ snackText }}
+        </v-snackbar>
     </div>
 </template>
 
@@ -168,6 +172,9 @@ export default class CanbusStatsPage extends Mixins(BaseMixin) {
     mdiChip = mdiChip
     mdiDelete = mdiDelete
     mdiMonitor = mdiMonitor
+
+    snackbar = false
+    snackText = ''
 
     canbusDefs: StatDef[] = CANBUS_STAT_DEFS
     mcuDefs: StatDef[] = MCU_STAT_DEFS
@@ -348,9 +355,15 @@ export default class CanbusStatsPage extends Mixins(BaseMixin) {
      */
     clearData(): void {
         resetBuffers()
-        if (typeof window !== 'undefined') window.localStorage.removeItem(STORAGE_KEY)
+        try {
+            if (typeof window !== 'undefined') window.localStorage.removeItem(STORAGE_KEY)
+        } catch (e) {
+            // storage access can be blocked (private mode); in-memory buffers are already reset
+            window.console.error('canbus stats: could not clear stored history', e)
+        }
         this.$store.commit('canbusStats/bumpRevision', undefined, { root: true })
-        this.$root.$emit('alert:showSnack', { text: this.$t('CanbusStats.DataCleared') })
+        this.snackText = this.$t('CanbusStats.DataCleared')
+        this.snackbar = true
     }
 }
 </script>
