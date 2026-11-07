@@ -44,12 +44,12 @@
                                 <v-tooltip bottom>
                                     <template #activator="{ on }">
                                         <span v-on="on">
-                                            {{ def.label }}:
+                                            {{ $t(def.labelKey) }}:
                                             <b>{{ latestFor(dev, def.key) }}</b>
-                                            <span class="text--secondary">{{ def.yLabel }}</span>
+                                            <span class="text--secondary">{{ $t(def.yLabelKey) }}</span>
                                         </span>
                                     </template>
-                                    {{ def.tooltip }}
+                                    {{ $t(def.tooltipKey) }}
                                 </v-tooltip>
                             </v-chip>
                         </div>
@@ -96,12 +96,12 @@
                                 <v-tooltip bottom>
                                     <template #activator="{ on }">
                                         <span v-on="on">
-                                            {{ def.label }}:
+                                            {{ $t(def.labelKey) }}:
                                             <b>{{ latestFor(dev, def.key) }}</b>
-                                            <span class="text--secondary">{{ def.yLabel }}</span>
+                                            <span class="text--secondary">{{ $t(def.yLabelKey) }}</span>
                                         </span>
                                     </template>
-                                    {{ def.tooltip }}
+                                    {{ $t(def.tooltipKey) }}
                                 </v-tooltip>
                             </v-chip>
                         </div>
@@ -124,7 +124,7 @@
             <panel :title="$t('CanbusStats.ByStatPanelTitle')" card-class="pb-2" :margin-bottom="false">
                 <v-row>
                     <v-col v-for="def in allStatDefs" :key="def.key" cols="12" md="6">
-                        <div class="caption pa-1">{{ def.label }}</div>
+                        <div class="caption pa-1">{{ $t(def.labelKey) }}</div>
                         <canbus-stats-chart :series="byStatSeries(def)" :y-label="def.yLabel" />
                     </v-col>
                 </v-row>
@@ -252,7 +252,7 @@ export default class CanbusStatsPage extends Mixins(BaseMixin) {
         for (const def of HOST_STAT_DEFS) {
             const data = b[def.key]
             if (data && data.length > 0) {
-                out.push({ name: def.label, color: def.color, data, axis: def.key === 'mem_avail' ? 'right' : 'left' })
+                out.push({ name: this.$t(def.labelKey), color: def.color, data, axis: def.key === 'mem_avail' ? 'right' : 'left' })
             }
         }
 
@@ -299,7 +299,7 @@ export default class CanbusStatsPage extends Mixins(BaseMixin) {
         return defs
             .map((def, i) => {
                 const data = perStat[def.key]
-                return data && data.length > 0 ? { name: def.label, color: def.color, data, axis: axes[i] } : null
+                return data && data.length > 0 ? { name: this.$t(def.labelKey), color: def.color, data, axis: axes[i] } : null
             })
             .filter((s): s is { name: string; color: string; data: Point[]; axis?: 'left' | 'right' } => s !== null)
     }
@@ -313,9 +313,13 @@ export default class CanbusStatsPage extends Mixins(BaseMixin) {
         return this.statDevices
             .map((dev, i) => {
                 const data = b[dev]?.[def.key]
-                return data && data.length > 0
-                    ? { name: dev.replace(/^(canbus_stats|mcu)/, '').trim(), color: DEVICE_PALETTE[i % DEVICE_PALETTE.length], data }
-                    : null
+                if (!data || data.length === 0) return null
+                // 'mcu x' -> 'x'; the default bus ('canbus_stats') and a plain 'mcu'
+                // would strip to an empty name, so fall back to a readable label
+                const stripped = dev.replace(/^(canbus_stats|mcu)/, '').trim()
+                const name =
+                    stripped === '' ? (dev === 'canbus_stats' ? this.$t('CanbusStats.BusName') : dev) : stripped
+                return { name, color: DEVICE_PALETTE[i % DEVICE_PALETTE.length], data }
             })
             .filter((s): s is { name: string; color: string; data: Point[] } => s !== null)
     }
@@ -330,7 +334,7 @@ export default class CanbusStatsPage extends Mixins(BaseMixin) {
         const v = data[data.length - 1].y
         const def = this.canbusDefs.find((d) => d.key === statKey) ?? this.mcuDefs.find((d) => d.key === statKey)
 
-        if (def?.yLabel === 'bytes') {
+        if (def?.yLabelKey === 'CanbusStats.Units.Bytes') {
             return this.formatBytes(v)
         }
 
@@ -343,11 +347,11 @@ export default class CanbusStatsPage extends Mixins(BaseMixin) {
      * Human-readable byte formatting for chips.
      */
     formatBytes(v: number): string {
-        if (v >= 1e6) return (v / 1e6).toFixed(2) + ' MB'
+        if (v >= 1e6) return (v / 1e6).toFixed(2) + ' ' + this.$t('CanbusStats.Units.Megabytes')
 
-        if (v >= 1e3) return (v / 1e3).toFixed(1) + ' kB'
+        if (v >= 1e3) return (v / 1e3).toFixed(1) + ' ' + this.$t('CanbusStats.Units.Kilobytes')
 
-        return Math.round(v).toString() + ' B'
+        return Math.round(v).toString() + ' ' + this.$t('CanbusStats.Units.B')
     }
 
     /**

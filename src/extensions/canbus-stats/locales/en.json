@@ -1,8 +1,6 @@
 {
-    "Router": {
-        "Canbus stats": "Canbus stats"
-    },
     "CanbusStats": {
+        "BusName": "Can bus",
         "ByStatPanelTitle": "All statistics per device",
         "ByStatSection": "By stat",
         "CanbusSection": "CAN bus",
@@ -15,6 +13,25 @@
         "HeaterChart": "Heater power",
         "HostPanelTitle": "Host system",
         "HostSection": "Host",
+        "Labels": {
+            "BytesInvalid": "Invalid bytes",
+            "BytesRead": "Bytes read",
+            "BytesRetransmit": "Retransmit bytes",
+            "BytesWrite": "Bytes written",
+            "HeaterPower": "Power",
+            "McuAwake": "MCU awake",
+            "MemoryAvailable": "Memory available",
+            "RetransmitSeqs": "Retransmit seqs",
+            "Rto": "RTO",
+            "RxErrors": "RX errors",
+            "Srtt": "SRTT",
+            "SysLoad": "Sys load",
+            "TaskAvg": "Task average",
+            "TaskStddev": "Task stddev",
+            "Temperature": "Temperature",
+            "TxErrors": "TX errors",
+            "TxRetries": "TX retries"
+        },
         "LatencyChart": "Round-trip time",
         "Live": "recording",
         "McuSection": "MCU",
@@ -22,6 +39,42 @@
         "PerfChart": "MCU performance",
         "TempChart": "Temperature sensors",
         "Title": "Canbus stats",
-        "TrafficChart": "Traffic"
+        "Tooltips": {
+            "BytesInvalid": "Cumulative bytes received from the MCU that were discarded — either because they failed the CRC check (bit errors caused by electrical noise or a defective cable) or because they arrived with an unexpected sequence number. Any non-zero value warrants investigation.",
+            "BytesRead": "Cumulative bytes received by the Klipper host from the MCU since the process started. Monotonically increasing.",
+            "BytesRetransmit": "Cumulative bytes retransmitted to the MCU because an acknowledgement was not received before the RTO timer expired (host→MCU direction). Any increase indicates packet loss — check USB cable quality, CPU load, and MCU power supply.",
+            "BytesWrite": "Cumulative bytes sent from the Klipper host to the MCU since the process started. Monotonically increasing.",
+            "HeaterPower": "Heater power fraction 0–1 (2 s bucket average). Useful as context for CAN hiccups during prints.",
+            "McuAwake": "Percentage of time the MCU spent outside its idle/sleep loop. Low values are normal. Sustained high values indicate the MCU is heavily loaded and may be unable to service all scheduled commands in time.",
+            "MemoryAvailable": "Available memory of the host system in MiB (2 s bucket average).",
+            "RetransmitSeqs": "The outgoing sequence number (send_seq) at the time of the most recent retransmit event. When this value changes, a retransmit just occurred. Use together with retransmit bytes to assess link reliability.",
+            "Rto": "Retransmission timeout in milliseconds — the window before a frame is considered lost and retransmitted. Should stay near double the SRTT; if it grows, the link is having trouble.",
+            "RxErrors": "Cumulative receive errors detected by the micro-controller CAN hardware. Increments on CRC errors, bit-stuffing errors, or framing errors on received frames.",
+            "Srtt": "Smoothed round-trip time in milliseconds between host and MCU (host→MCU direction). Rising values indicate the host is getting slower at servicing the MCU, usually under CPU load.",
+            "SysLoad": "Load average of the host system running Klipper (2 s bucket average).",
+            "TaskAvg": "Average time in microseconds the MCU’s internal task scheduler takes to process a single command. Reported by the MCU firmware. Higher values reduce available headroom for real-time scheduling.",
+            "TaskStddev": "Standard deviation of the MCU task processing time in microseconds. A high standard deviation indicates inconsistent scheduling latency which can cause timing jitter in stepper or heater control.",
+            "Temperature": "Temperature reported by the sensor (2 s bucket average).",
+            "TxErrors": "Cumulative transmit errors detected by the micro-controller CAN hardware. Increments when a transmitted frame is not acknowledged by any node on the bus. High values indicate missing bus termination, an open circuit, or a disconnected device. Note: rp2040/rp2350 MCUs always report this as 0.",
+            "TxRetries": "Number of CAN frame transmit attempts that were retried due to bus contention (arbitration loss) or transmission errors. Only reported as non-zero by rp2040/rp2350 micro-controllers; always 0 on other MCU types."
+        },
+        "TrafficChart": "Traffic",
+        "Units": {
+            "B": "B",
+            "Bytes": "bytes",
+            "Count": "count",
+            "DegreesCelsius": "°C",
+            "Kilobytes": "kB",
+            "Mebibytes": "MiB",
+            "Megabytes": "MB",
+            "Microseconds": "µs",
+            "Milliseconds": "ms",
+            "None": "",
+            "Percent": "%",
+            "Seqs": "seqs"
+        }
+    },
+    "Router": {
+        "Canbus stats": "Canbus stats"
     }
 }

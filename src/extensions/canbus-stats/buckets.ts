@@ -36,116 +36,106 @@ export interface BucketAccumulator {
 export interface StatDef {
     // object field key in the moonraker status (inside `last_stats` for mcu objects)
     key: string
-    // short chart/legend label
-    label: string
-    // y-axis unit label
-    yLabel: string
+    // i18n key of the short chart/legend label (translated in the UI layer)
+    labelKey: string
+    // i18n key of the y-axis unit label
+    yLabelKey: string
     // 'last' for cumulative counters, 'avg' for level/rate values
     mode: BucketMode
     // optional unit conversion applied before storing
     scale?: (v: number) => number
     // line color
     color: string
-    // tooltip describing the stat
-    tooltip: string
+    // i18n key of the tooltip describing the stat
+    tooltipKey: string
 }
 
 // ported verbatim from klipper-comm-tracking/stats.html
 export const MCU_STAT_DEFS: StatDef[] = [
     {
         key: 'bytes_retransmit',
-        label: 'Retransmit bytes',
-        yLabel: 'bytes',
+        labelKey: 'CanbusStats.Labels.BytesRetransmit',
+        yLabelKey: 'CanbusStats.Units.Bytes',
         mode: 'last',
         color: '#f28c28',
-        tooltip:
-            'Cumulative bytes retransmitted to the MCU because an acknowledgement was not received before the RTO timer expired (host→MCU direction). Any increase indicates packet loss — check USB cable quality, CPU load, and MCU power supply.',
+        tooltipKey: 'CanbusStats.Tooltips.BytesRetransmit',
     },
     {
         key: 'bytes_invalid',
-        label: 'Invalid bytes',
-        yLabel: 'bytes',
+        labelKey: 'CanbusStats.Labels.BytesInvalid',
+        yLabelKey: 'CanbusStats.Units.Bytes',
         mode: 'last',
         color: '#e74c3c',
-        tooltip:
-            'Cumulative bytes received from the MCU that were discarded — either because they failed the CRC check (bit errors caused by electrical noise or a defective cable) or because they arrived with an unexpected sequence number. Any non-zero value warrants investigation.',
+        tooltipKey: 'CanbusStats.Tooltips.BytesInvalid',
     },
     {
         key: 'retransmit_seq',
-        label: 'Retransmit seqs',
-        yLabel: 'seqs',
+        labelKey: 'CanbusStats.Labels.RetransmitSeqs',
+        yLabelKey: 'CanbusStats.Units.Seqs',
         mode: 'last',
         color: '#f1c40f',
-        tooltip:
-            'The outgoing sequence number (send_seq) at the time of the most recent retransmit event. When this value changes, a retransmit just occurred. Use together with retransmit bytes to assess link reliability.',
+        tooltipKey: 'CanbusStats.Tooltips.RetransmitSeqs',
     },
     {
         key: 'bytes_write',
-        label: 'Bytes written',
-        yLabel: 'bytes',
+        labelKey: 'CanbusStats.Labels.BytesWrite',
+        yLabelKey: 'CanbusStats.Units.Bytes',
         mode: 'last',
         color: '#4d9de0',
-        tooltip:
-            'Cumulative bytes sent from the Klipper host to the MCU since the process started. Monotonically increasing.',
+        tooltipKey: 'CanbusStats.Tooltips.BytesWrite',
     },
     {
         key: 'bytes_read',
-        label: 'Bytes read',
-        yLabel: 'bytes',
+        labelKey: 'CanbusStats.Labels.BytesRead',
+        yLabelKey: 'CanbusStats.Units.Bytes',
         mode: 'last',
         color: '#00d4aa',
-        tooltip:
-            'Cumulative bytes received by the Klipper host from the MCU since the process started. Monotonically increasing.',
+        tooltipKey: 'CanbusStats.Tooltips.BytesRead',
     },
     {
         key: 'mcu_awake',
-        label: 'MCU awake %',
-        yLabel: '%',
+        labelKey: 'CanbusStats.Labels.McuAwake',
+        yLabelKey: 'CanbusStats.Units.Percent',
         mode: 'avg',
         scale: (v) => v * 100,
         color: '#9b59b6',
-        tooltip:
-            'Percentage of time the MCU spent outside its idle/sleep loop. Low values are normal. Sustained high values indicate the MCU is heavily loaded and may be unable to service all scheduled commands in time.',
+        tooltipKey: 'CanbusStats.Tooltips.McuAwake',
     },
     {
         key: 'mcu_task_avg',
-        label: 'Task avg µs',
-        yLabel: 'µs',
+        labelKey: 'CanbusStats.Labels.TaskAvg',
+        yLabelKey: 'CanbusStats.Units.Microseconds',
         mode: 'avg',
         scale: (v) => v * 1e6,
         color: '#3498db',
-        tooltip:
-            'Average time in microseconds the MCU’s internal task scheduler takes to process a single command. Reported by the MCU firmware. Higher values reduce available headroom for real-time scheduling.',
+        tooltipKey: 'CanbusStats.Tooltips.TaskAvg',
     },
     {
         key: 'mcu_task_stddev',
-        label: 'Task stddev µs',
-        yLabel: 'µs',
+        labelKey: 'CanbusStats.Labels.TaskStddev',
+        yLabelKey: 'CanbusStats.Units.Microseconds',
         mode: 'avg',
         scale: (v) => v * 1e6,
         color: '#2980b9',
-        tooltip:
-            'Standard deviation of the MCU task processing time in microseconds. A high standard deviation indicates inconsistent scheduling latency which can cause timing jitter in stepper or heater control.',
+        tooltipKey: 'CanbusStats.Tooltips.TaskStddev',
     },
     {
         key: 'srtt',
-        label: 'SRTT ms',
-        yLabel: 'ms',
+        labelKey: 'CanbusStats.Labels.Srtt',
+        yLabelKey: 'CanbusStats.Units.Milliseconds',
         mode: 'avg',
         scale: (v) => v * 1000,
         color: '#00d4aa',
-        tooltip:
-            'Smoothed round-trip time in milliseconds between host and MCU (host→MCU direction). Rising values indicate the host is getting slower at servicing the MCU, usually under CPU load.',
+        tooltipKey: 'CanbusStats.Tooltips.Srtt',
     },
     {
         key: 'rto',
-        label: 'RTO ms',
-        yLabel: 'ms',
+        labelKey: 'CanbusStats.Labels.Rto',
+        yLabelKey: 'CanbusStats.Units.Milliseconds',
         mode: 'avg',
         scale: (v) => v * 1000,
         color: '#f28c28',
-        tooltip:
-            'Retransmission timeout in milliseconds — the window before a frame is considered lost and retransmitted. Should stay near double the SRTT; if it grows, the link is having trouble.',
+        tooltipKey: 'CanbusStats.Tooltips.Rto',
     },
 ]
 
@@ -153,72 +143,69 @@ export const MCU_STAT_DEFS: StatDef[] = [
 export const CANBUS_STAT_DEFS: StatDef[] = [
     {
         key: 'rx_error',
-        label: 'RX errors',
-        yLabel: 'count',
+        labelKey: 'CanbusStats.Labels.RxErrors',
+        yLabelKey: 'CanbusStats.Units.Count',
         mode: 'last',
         color: '#e74c3c',
-        tooltip:
-            'Cumulative receive errors detected by the micro-controller CAN hardware. Increments on CRC errors, bit-stuffing errors, or framing errors on received frames.',
+        tooltipKey: 'CanbusStats.Tooltips.RxErrors',
     },
     {
         key: 'tx_error',
-        label: 'TX errors',
-        yLabel: 'count',
+        labelKey: 'CanbusStats.Labels.TxErrors',
+        yLabelKey: 'CanbusStats.Units.Count',
         mode: 'last',
         color: '#f28c28',
-        tooltip:
-            'Cumulative transmit errors detected by the micro-controller CAN hardware. Increments when a transmitted frame is not acknowledged by any node on the bus. High values indicate missing bus termination, an open circuit, or a disconnected device. Note: rp2040/rp2350 MCUs always report this as 0.',
+        tooltipKey: 'CanbusStats.Tooltips.TxErrors',
     },
     {
         key: 'tx_retries',
-        label: 'TX retries',
-        yLabel: 'count',
+        labelKey: 'CanbusStats.Labels.TxRetries',
+        yLabelKey: 'CanbusStats.Units.Count',
         mode: 'last',
         color: '#f1c40f',
-        tooltip:
-            'Number of CAN frame transmit attempts that were retried due to bus contention (arbitration loss) or transmission errors. Only reported as non-zero by rp2040/rp2350 micro-controllers; always 0 on other MCU types.',
+        tooltipKey: 'CanbusStats.Tooltips.TxRetries',
     },
 ]
 
 export const HOST_STAT_DEFS: StatDef[] = [
     {
         key: 'sysload',
-        label: 'Sys load',
-        yLabel: '',
+        labelKey: 'CanbusStats.Labels.SysLoad',
+        yLabelKey: 'CanbusStats.Units.None',
         mode: 'avg',
         color: '#00d4aa',
-        tooltip: 'Load average of the host system running Klipper (2 s bucket average).',
+        tooltipKey: 'CanbusStats.Tooltips.SysLoad',
     },
     {
         key: 'mem_avail',
-        label: 'Memory available',
-        yLabel: 'MiB',
+        labelKey: 'CanbusStats.Labels.MemoryAvailable',
+        yLabelKey: 'CanbusStats.Units.Mebibytes',
         mode: 'avg',
         scale: (v) => v / 1024,
         color: '#9b59b6',
-        tooltip: 'Available memory of the host system in MiB (2 s bucket average).',
+        tooltipKey: 'CanbusStats.Tooltips.MemoryAvailable',
     },
 ]
 
 export const SENSOR_STAT_DEFS: StatDef[] = [
     {
         key: 'temperature',
-        label: 'Temperature',
-        yLabel: '°C',
+        labelKey: 'CanbusStats.Labels.Temperature',
+        yLabelKey: 'CanbusStats.Units.DegreesCelsius',
         mode: 'avg',
         color: '#f28c28',
-        tooltip: 'Temperature reported by the sensor (2 s bucket average).',
+        tooltipKey: 'CanbusStats.Tooltips.Temperature',
     },
 ]
 
 export const HEATER_STAT_DEFS: StatDef[] = [
     {
         key: 'power',
-        label: 'Power',
-        yLabel: '',
+        labelKey: 'CanbusStats.Labels.HeaterPower',
+        yLabelKey: 'CanbusStats.Units.None',
         mode: 'avg',
         color: '#e74c3c',
-        tooltip: 'Heater power fraction 0–1 (2 s bucket average). Useful as context for CAN hiccups during prints.',
+        tooltipKey: 'CanbusStats.Tooltips.HeaterPower',
     },
 ]
 
