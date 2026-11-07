@@ -1,3 +1,15 @@
+<!--
+    CanbusStatsChart.vue — a single echarts time-line chart for one named-line dataset
+    (e.g. one canbus device, one MCU chart, or one aggregated stat).
+    Why: the canbus-stats page renders many of these; each draws whatever `series` the
+    parent passes, on one or two y-axes (axis: 'left' | 'right' per line).
+
+    Design note: the series data lives INSIDE the `chartOptions` getter (same pattern as
+    components/charts/TempChart.vue). vue-echarts re-applies the option with
+    notMerge whenever the option reference changes, so the option object must always
+    carry the full, consistent state — mixing an `:option` binding with a separate
+    manual `setOption({ series })` would let the notMerge path wipe the lines.
+-->
 <template>
     <e-chart
         ref="chart"
@@ -11,13 +23,12 @@
 
 <script lang="ts">
 import Component from 'vue-class-component'
-import { Mixins, Prop, Ref, Watch } from 'vue-property-decorator'
+import { Mixins, Prop, Ref } from 'vue-property-decorator'
 import BaseMixin from '@/components/mixins/base'
 import ThemeMixin from '@/components/mixins/theme'
 import type { ECBasicOption } from 'echarts/types/dist/shared.d'
 import type { EChartRef } from '@/types/echarts'
 import type { Point } from './buckets'
-import { getCanbusRevision } from './store'
 
 // one named line inside a chart
 export interface CanbusChartSeries {
@@ -27,8 +38,6 @@ export interface CanbusChartSeries {
     // right y-axis for dual-axis charts (performance chart, host chart)
     axis?: 'left' | 'right'
 }
-
-const CHART_UPDATE_MS = 2_000
 
 @Component
 export default class CanbusStatsChart extends Mixins(BaseMixin, ThemeMixin) {
@@ -42,14 +51,22 @@ export default class CanbusStatsChart extends Mixins(BaseMixin, ThemeMixin) {
 
     @Ref('chart') readonly chart!: EChartRef | undefined
 
-    private updateTimer: number | null = null
-
-    // vuex revision of the canbusStats module — the reactive trigger for chart updates
-    get revision(): number {
-        return getCanbusRevision(this.$store)
+    // echarts series entries mapped from the incoming named datasets
+    get mappedSeries() {
+        return this.series.map((s) => ({
+            name: s.name,
+            type: 'line' as const,
+            showSymbol: false,
+            sampling: 'lttb' as const,
+            lineStyle: { color: s.color, width: 1.5 },
+            itemStyle: { color: s.color },
+            yAxisIndex: s.axis === 'right' ? 1 : 0,
+            data: s.data.map((p) => [p.x, p.y] as [number, number]),
+        }))
     }
 
-    // base option (axes/grid/tooltip); series are applied on demand via setOption
+    // full option; a new reference on every evaluation, which is what makes
+    // vue-echarts re-apply it (see component doc)
     get chartOptions(): ECBasicOption {
         return {
             animation: false,
@@ -69,11 +86,8 @@ export default class CanbusStatsChart extends Mixins(BaseMixin, ThemeMixin) {
                 axisLabel: {
                     color: this.fgColorHi,
                     hideOverlap: true,
-                    formatter: (value: number) => {
-                        const d = new Date(value)
-                        const p = (n: number) => n.toString().padStart(2, '0')
-                        return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
-                    },
+                    // same convention as TempChart.vue: 12h/24h follows the UI setting
+                    formatter: this.hours12Format ? '{hh}:{mm}' : '{HH}:{mm}',
                 },
             },
             yAxis: [
@@ -97,53 +111,16 @@ export default class CanbusStatsChart extends Mixins(BaseMixin, ThemeMixin) {
                       ]
                     : []),
             ],
-            series: [],
+            series: this.mappedSeries,
         }
-    }
-
-    mounted(): void {
-        this.updateChart()
-    }
-
-    // the buffers grow on every status update; refresh the chart at most once per bucket
-    @Watch('revision')
-    onRevision(): void {
-        if (this.updateTimer !== null) return
-
-        this.updateTimer = window.setTimeout(() => {
-            this.updateTimer = null
-            this.updateChart()
-        }, CHART_UPDATE_MS)
     }
 
     beforeDestroy(): void {
-        if (this.updateTimer !== null) {
-            window.clearTimeout(this.updateTimer)
-            this.updateTimer = null
-        }
         this.chart?.dispose()
     }
 
     visibilityChanged(visible: boolean): void {
         if (visible) this.chart?.resize()
-    }
-
-    private updateChart(): void {
-        const echarts = this.chart?.chart
-        if (!echarts) return
-
-        const mapped = this.series.map((s) => ({
-            name: s.name,
-            type: 'line' as const,
-            showSymbol: false,
-            sampling: 'lttb' as const,
-            lineStyle: { color: s.color, width: 1.5 },
-            itemStyle: { color: s.color },
-            yAxisIndex: s.axis === 'right' ? 1 : 0,
-            data: s.data.map((p) => [p.x, p.y] as [number, number]),
-        }))
-
-        echarts.setOption({ series: mapped }, false, true)
     }
 }
 </script>
