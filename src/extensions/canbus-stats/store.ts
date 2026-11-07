@@ -31,6 +31,7 @@ const accumulators = new Map<string, BucketAccumulator>()
 
 let persistTimer: number | null = null
 let persistDirty = false
+let pagehideRegistered = false
 
 /**
  * Get the current series buffers (read-only view for components).
@@ -372,6 +373,8 @@ function statModeForKey(statKey: string): BucketMode {
 
 /**
  * Start the throttled persistence timer (30 s). Idempotent.
+ * Also registers a one-time `pagehide` flush, so closing the tab does not lose
+ * up to PERSIST_INTERVAL_MS of dirty samples the interval has not written yet.
  */
 export function startPersistenceThrottle(): void {
     if (persistTimer !== null || typeof window === 'undefined') return
@@ -379,15 +382,11 @@ export function startPersistenceThrottle(): void {
     persistTimer = window.setInterval(() => {
         if (persistDirty) persistNow()
     }, PERSIST_INTERVAL_MS)
-}
 
-/**
- * Stop the throttled persistence timer and flush any pending data.
- */
-export function stopPersistenceThrottle(): void {
-    if (persistTimer === null) return
-
-    window.clearInterval(persistTimer)
-    persistTimer = null
-    if (persistDirty) persistNow()
+    if (!pagehideRegistered) {
+        pagehideRegistered = true
+        window.addEventListener('pagehide', () => {
+            if (persistDirty) persistNow()
+        })
+    }
 }

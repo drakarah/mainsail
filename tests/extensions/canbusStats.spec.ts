@@ -29,6 +29,7 @@ import {
     recordSample,
     resetBuffers,
     restoreFromStorage,
+    startPersistenceThrottle,
     STORAGE_KEY,
 } from '@/extensions/canbus-stats/store'
 import canbusExtension from '@/extensions/canbus-stats/index'
@@ -389,6 +390,36 @@ describe('persistNow', () => {
         const stored = JSON.parse(storage.getItem(STORAGE_KEY)!)
         expect(Object.keys(stored.series.mcu)).toEqual(['srtt'])
         expect(stored.series.mcu.srtt).toHaveLength(1)
+    })
+
+    it('flushes pending data on pagehide (tab close)', () => {
+        const items: Record<string, string> = {}
+        let pagehideHandler: (() => void) | null = null
+        vi.stubGlobal('window', {
+            localStorage: {
+                getItem: vi.fn((k: string) => (k in items ? items[k] : null)),
+                setItem: vi.fn((k: string, v: string) => { items[k] = String(v) }),
+                removeItem: vi.fn((k: string) => { delete items[k] }),
+            },
+            setInterval: vi.fn(() => 1),
+            clearInterval: vi.fn(),
+            addEventListener: vi.fn((ev: string, fn: () => void) => {
+                if (ev === 'pagehide') pagehideHandler = fn
+            }),
+            console,
+        })
+
+        const now = Date.now()
+        recordSample('canbus_stats', 'rx_error', 'last', (v) => v, now, 7)
+        recordSample('canbus_stats', 'rx_error', 'last', (v) => v, now + BUCKET_MS, 7) // closes the bucket => dirty
+
+        startPersistenceThrottle()
+        expect(pagehideHandler).not.toBeNull()
+
+        pagehideHandler!()
+        const stored = JSON.parse(items[STORAGE_KEY])
+        expect(stored.series.canbus_stats.rx_error).toHaveLength(1)
+        expect(stored.series.canbus_stats.rx_error[0][1]).toBe(7)
     })
 })
 
