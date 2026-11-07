@@ -11,6 +11,7 @@ adds the following, mostly aimed at toolchanger printers
 | Filament mapping  | Start print dialog maps the filaments of a print to tools                                                                                                                                                                                      | always                        |
 | Tool calibration  | Page with the [axiscope](https://github.com/nic335/Axiscope) tool offset calibration UI                                                                                                                                                        | `[axiscope]` is configured    |
 | Input Shaper      | Page for [Shake&Tune](https://github.com/Frix-x/klippain-shaketune): calibrate one or all tools, review the graphs and recommendations, try values live and save them to each tool's config (or `[input_shaper]`), belts and vibrations graphs | `[shaketune]` is configured   |
+| Canbus statistics | Page to chart CAN bus and MCU statistics to help you figure out your CAN bus stability or issues | Any mcu is configured with CAN bus
 
 Everything the fork adds lives in [`src/extensions`](src/extensions/README.md), with small hooks in upstream files,
 so upstream releases merge without much trouble.
