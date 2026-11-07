@@ -34,7 +34,9 @@ let persistDirty = false
 let pagehideRegistered = false
 
 /**
- * Get the current series buffers (read-only view for components).
+ * Get the current series buffers.
+ * NOTE: this returns the live, mutable module-level buffers — not a copy — so
+ * callers must treat them as read-only (components re-read on the revision bump).
  * @returns map of device object name → stat key → point series.
  */
 export function getBuffers(): Record<string, DeviceSeries> {
