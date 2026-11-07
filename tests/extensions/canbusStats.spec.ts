@@ -288,6 +288,32 @@ describe('restoreFromStorage', () => {
         expect(Object.keys(getBuffers())).toEqual([])
     })
 
+    it('ignores payloads with an unknown version', () => {
+        stubLocalStorage(JSON.stringify({ version: 2, series: { canbus_stats: { rx_error: [[Date.now(), 1]] } } }))
+        restoreFromStorage()
+        expect(Object.keys(getBuffers())).toEqual([])
+    })
+
+    it('skips malformed series but keeps the valid ones', () => {
+        const now = Date.now()
+        const openEnd = (Math.floor(now / BUCKET_MS) + 1) * BUCKET_MS
+        stubLocalStorage(JSON.stringify({
+            version: 1,
+            series: {
+                good: { srtt: [[openEnd - BUCKET_MS * 2, 3]] },
+                bad: {
+                    wrong_length: [[now, 1, 2]],
+                    non_numeric: [['a', 'b']],
+                    not_an_array: { x: 1 },
+                },
+            },
+        }))
+        restoreFromStorage()
+        const buffers = getBuffers()
+        expect(buffers.good.srtt).toHaveLength(1)
+        expect(buffers.bad).toBeUndefined()
+    })
+
     it('does not fabricate fill points across a huge clock gap (sleep/reconnect)', () => {
         const store = freshStore()
         store.registerModule('canbusStats', moduleFor())

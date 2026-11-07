@@ -306,6 +306,15 @@ export function persistNow(): void {
 }
 
 /**
+ * Check that a persisted series is an array of strict [finite x, finite y] pairs.
+ */
+function isPointArray(value: unknown): value is [number, number][] {
+    if (!Array.isArray(value)) return false
+
+    return value.every((p) => Array.isArray(p) && p.length === 2 && Number.isFinite(p[0]) && Number.isFinite(p[1]))
+}
+
+/**
  * Load persisted buffers back into the buffers and recreate accumulators with a forward
  * bucketEnd (so the next feedBuckets call cannot emit phantom backward-dated points).
  * @pre document/localStorage available; silently does nothing on missing/corrupt storage.
@@ -317,14 +326,16 @@ export function restoreFromStorage(): void {
         const raw = window.localStorage.getItem(STORAGE_KEY)
         if (!raw) return
 
-        const parsed = JSON.parse(raw) as { series?: Record<string, Record<string, [number, number][]>> }
-        if (!parsed?.series) return
+        const parsed = JSON.parse(raw) as { version?: number; series?: Record<string, Record<string, unknown>> }
+        if (parsed?.version !== 1 || typeof parsed.series !== 'object' || parsed.series === null) return
 
         const now = Date.now()
         const cutoff = now - HISTORY_MS
         for (const [device, perStat] of Object.entries(parsed.series)) {
+            if (typeof perStat !== 'object' || perStat === null) continue
             const perDevice: DeviceSeries = {}
             for (const [stat, pts] of Object.entries(perStat)) {
+                if (!isPointArray(pts)) continue
                 const series: Point[] = pts.map(([x, y]) => ({ x, y }))
                 // prune anything older than the history window
                 while (series.length > 0 && series[0].x < cutoff) series.shift()
