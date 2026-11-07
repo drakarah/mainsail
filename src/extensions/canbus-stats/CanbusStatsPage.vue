@@ -125,7 +125,7 @@
                 <v-row>
                     <v-col v-for="def in allStatDefs" :key="def.key" cols="12" md="6">
                         <div class="caption pa-1">{{ $t(def.labelKey) }}</div>
-                        <canbus-stats-chart :series="byStatSeries(def)" :y-label="def.yLabel" />
+                        <canbus-stats-chart :series="byStatSeries(def)" :y-label="$t(def.yLabelKey)" />
                     </v-col>
                 </v-row>
             </panel>
