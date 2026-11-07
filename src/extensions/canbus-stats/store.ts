@@ -15,6 +15,12 @@ export const STORAGE_KEY = 'mainsail_canbus_stats_v1'
 
 const PERSIST_INTERVAL_MS = 30_000
 
+// only the most recent 30 min is persisted — a full 12 h of buckets for every
+// device/stat can exceed the ~5 MB localStorage quota on multi-MCU systems
+// (a worst-case ~100-series setup would serialize ~4 MB even in one hour).
+// Memory keeps the full 12 h history; this is only the reload-survival copy.
+export const PERSIST_WINDOW_MS = 30 * 60 * 1000
+
 export type DeviceSeries = Record<string, Point[]>
 
 // deviceKey → series; deliberately not vue-reactive
@@ -289,24 +295,32 @@ function handleSystemStats(store: Store<RootState>, data: Record<string, unknown
 
 
 /**
- * Serialize the current buffers to localStorage (throttled caller).
+ * Serialize the current buffers to localStorage (throttled caller). Only the most recent
+ * PERSIST_WINDOW_MS of history is written, so the payload stays far below the browser
+ * quota. On write failure the dirty flag is cleared — retrying the identical write every
+ * tick would only spam the console.
  * @pre document/localStorage available; corrupt state is never thrown.
  */
 export function persistNow(): void {
     if (typeof window === 'undefined') return
 
     try {
+        const cutoff = Date.now() - PERSIST_WINDOW_MS
         const serialized: Record<string, Record<string, [number, number][]>> = {}
         for (const [device, perStat] of Object.entries(buffers)) {
-            serialized[device] = {}
+            const perDevice: Record<string, [number, number][]> = {}
             for (const [stat, series] of Object.entries(perStat)) {
-                serialized[device][stat] = series.map((p) => [p.x, p.y] as [number, number])
+                // keep only the recent window in the persisted copy (memory keeps all)
+                const pts = series.filter((p) => p.x >= cutoff).map((p) => [p.x, p.y] as [number, number])
+                if (pts.length > 0) perDevice[stat] = pts
             }
+            if (Object.keys(perDevice).length > 0) serialized[device] = perDevice
         }
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, savedAt: Date.now(), series: serialized }))
         persistDirty = false
     } catch (e) {
         window.console.error('canbus stats: could not persist history', e)
+        persistDirty = false
     }
 }
 

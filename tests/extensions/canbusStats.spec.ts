@@ -26,9 +26,11 @@ import {
     canbusStatsModule,
     getBuffers,
     handleStatusPayload,
+    persistNow,
     recordSample,
     resetBuffers,
     restoreFromStorage,
+    STORAGE_KEY,
 } from '@/extensions/canbus-stats/store'
 import canbusExtension from '@/extensions/canbus-stats/index'
 import type { CanbusStatsState } from '@/extensions/canbus-stats/store'
@@ -311,6 +313,68 @@ describe('restoreFromStorage', () => {
         // the series must stay small: no millions of carry-forward points
         expect(getBuffers()['mcu'].srtt.length).toBeLessThan(before + 10)
         expect(getBuffers()['mcu'].srtt.length).toBeLessThan(100)
+    })
+})
+
+describe('persistNow', () => {
+    function stubStorage(throwOnSet = false) {
+        const items: Record<string, string> = {}
+        const storage = {
+            getItem: vi.fn((k: string) => (k in items ? items[k] : null)),
+            setItem: vi.fn((k: string, v: string) => {
+                if (throwOnSet) throw new Error('QuotaExceededError')
+                items[k] = String(v)
+            }),
+            removeItem: vi.fn((k: string) => { delete items[k] }),
+        }
+        vi.stubGlobal('window', { localStorage: storage, console })
+        return storage
+    }
+
+    beforeEach(() => {
+        resetBuffers()
+    })
+
+    afterEach(() => {
+        vi.unstubAllGlobals()
+    })
+
+    it('persists only the recent window, keeps full history in memory', () => {
+        const storage = stubStorage()
+        const now = Date.now()
+        // an old sample pair (2 h ago) and a fresh pair
+        recordSample('mcu', 'srtt', 'last', (v) => v * 1000, now - 2 * 3600 * 1000, 5)
+        recordSample('mcu', 'srtt', 'last', (v) => v * 1000, now - 2 * 3600 * 1000 + BUCKET_MS, 5)
+        recordSample('mcu', 'srtt', 'last', (v) => v * 1000, now, 7)
+        recordSample('mcu', 'srtt', 'last', (v) => v * 1000, now + BUCKET_MS, 7)
+
+        // memory keeps both the old and the new point
+        expect(getBuffers()['mcu'].srtt).toHaveLength(2)
+
+        persistNow()
+        const stored = JSON.parse(storage.getItem(STORAGE_KEY)!)
+        const pts = stored.series.mcu.srtt
+        expect(pts.length).toBeGreaterThan(0)
+        // the 2 h old point must have been dropped from the persisted copy
+        const minPersisted = Math.min(...pts.map((p: number[]) => p[0]))
+        expect(minPersisted).toBeGreaterThan(now - 2 * 3600 * 1000 + BUCKET_MS)
+    })
+
+    it('does not throw when localStorage rejects the write (quota exceeded)', () => {
+        stubStorage(true)
+        recordSample('mcu', 'srtt', 'last', (v) => v * 1000, Date.now(), 7)
+        expect(() => persistNow()).not.toThrow()
+    })
+
+    it('drops empty series from the persisted payload', () => {
+        const storage = stubStorage()
+        recordSample('mcu', 'srtt', 'last', (v) => v * 1000, Date.now(), 7)
+        recordSample('mcu', 'srtt', 'last', (v) => v * 1000, Date.now() + BUCKET_MS, 7)
+        getBuffers()['mcu'].empty_stat = [] // simulate a series with no points
+        persistNow()
+        const stored = JSON.parse(storage.getItem(STORAGE_KEY)!)
+        expect(Object.keys(stored.series.mcu)).toEqual(['srtt'])
+        expect(stored.series.mcu.srtt).toHaveLength(1)
     })
 })
 
