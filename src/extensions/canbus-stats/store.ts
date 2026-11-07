@@ -8,7 +8,7 @@
 import { Module } from 'vuex'
 import type { Store } from 'vuex'
 import type { RootState } from '@/store/types'
-import { BUCKET_MS, CANBUS_STAT_DEFS, feedBuckets, flushBuckets, HISTORY_MS, isTrackedObject, makeBuckets, MAX_BUCKETS, MCU_STAT_DEFS, type BucketAccumulator, type BucketMode, type Point } from './buckets'
+import { BUCKET_MS, CANBUS_STAT_DEFS, flushBuckets, HISTORY_MS, isTrackedObject, makeBuckets, MAX_BUCKETS, MCU_STAT_DEFS, pushBucketed, type BucketAccumulator, type BucketMode, type Point } from './buckets'
 
 // persistence key — deliberately separate from the standalone dashboard's `kct_v2`
 export const STORAGE_KEY = 'mainsail_canbus_stats_v1'
@@ -125,31 +125,12 @@ export function recordSample(
         perDevice[statKey] = series
     }
 
-    const added = pushIntoSeries(series, acc, ts, scaled)
+    const added = pushBucketed(series, acc, ts, scaled)
     if (added) persistDirty = true
 
     return added
 }
 
-/**
- * Append completed-bucket points to a series with the monotonic guard and MAX_BUCKETS cap.
- * @returns true when at least one point was appended.
- */
-function pushIntoSeries(series: Point[], acc: BucketAccumulator, ts: number, value: number): boolean {
-    const pts = feedBuckets(acc, ts, value)
-    if (pts.length === 0) return false
-
-    let added = false
-    for (const p of pts) {
-        if (series.length === 0 || p.x > series[series.length - 1].x) {
-            series.push(p)
-            added = true
-        }
-    }
-    while (series.length > MAX_BUCKETS) series.shift()
-
-    return added
-}
 
 /**
  * Get the canbusStats module's revision counter through the typed store.

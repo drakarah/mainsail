@@ -20,7 +20,6 @@ import {
     MAX_BUCKETS,
     type Point,
     pushBucketed,
-    seedSeries,
 } from '@/extensions/canbus-stats/buckets'
 import {
     canbusStatsModule,
@@ -102,7 +101,7 @@ describe('feedBuckets', () => {
     })
 })
 
-describe('pushBucketed / seedSeries', () => {
+describe('pushBucketed', () => {
     it('respects the monotonic guard on series pushes', () => {
         const b = makeBuckets('last')
         const series: Point[] = []
@@ -125,17 +124,6 @@ describe('pushBucketed / seedSeries', () => {
         expect(series[0].x).toBe(base + BUCKET_MS * 9)
     })
 
-    it('seedSeries emits the snapshot and advances bucketEnd forward', () => {
-        const b = makeBuckets('last')
-        const series: Point[] = []
-
-        expect(seedSeries(series, b, base + 1234, 42)).toBe(true)
-        expect(series).toEqual([{ x: base + 1234, y: 42 }])
-        // a later restore with an older ts must not add a backward point
-        const b2 = makeBuckets('last')
-        expect(seedSeries(series, b2, base, 1)).toBe(false)
-        expect(series.length).toBe(1)
-    })
 
     it('keeps history within the 12 h window', () => {
         expect(MAX_BUCKETS * BUCKET_MS).toBe(HISTORY_MS)

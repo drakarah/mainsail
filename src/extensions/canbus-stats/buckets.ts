@@ -17,7 +17,7 @@ export const HISTORY_MS = 12 * 60 * 60 * 1000
 // max points kept per series (HISTORY_MS / BUCKET_MS)
 export const MAX_BUCKETS = HISTORY_MS / BUCKET_MS
 
-export type BucketMode = 'last' | 'avg' | 'sum'
+export type BucketMode = 'last' | 'avg'
 
 export interface Point {
     x: number
@@ -269,8 +269,6 @@ export function flushBuckets(b: BucketAccumulator, ts: number): Point[] {
             y = b.lastEmitted // no samples this bucket: carry forward last known value
         } else if (b.mode === 'avg') {
             y = b.acc / b.count
-        } else if (b.mode === 'sum') {
-            y = b.acc
         } else {
             y = b.acc // 'last': acc holds the most-recent value seen this bucket
         }
@@ -323,26 +321,6 @@ export function pushBucketed(series: Point[], b: BucketAccumulator, ts: number, 
     while (series.length > MAX_BUCKETS) series.shift()
 
     return added
-}
-
-/**
- * Immediately emit a snapshot point at ts without waiting for the bucket to close.
- * Always advances bucketEnd to the next boundary >= ts, so a restored/stale bucketEnd
- * cannot later emit phantom backward-dated carry-forward points.
- * @returns true when a point was added.
- */
-export function seedSeries(series: Point[], b: BucketAccumulator, ts: number, value: number): boolean {
-    b.bucketEnd = (Math.floor(ts / BUCKET_MS) + 1) * BUCKET_MS
-    b.lastEmitted = value
-
-    if (series.length === 0 || ts > series[series.length - 1].x) {
-        series.push({ x: ts, y: value })
-        while (series.length > MAX_BUCKETS) series.shift()
-
-        return true
-    }
-
-    return false
 }
 
 /**
