@@ -3,7 +3,7 @@
 // # input-shaper): a nav route visible only when canbus_stats* moonraker objects exist,
 // # i18n locales, and a setup() hook that starts the status recorder from app start.
 
-import { mdiBus } from '@mdi/js'
+import { mdiCableData } from '@mdi/js'
 import type { MainsailExtension } from '../types'
 
 export default {
@@ -11,9 +11,9 @@ export default {
     routes: [
         {
             name: 'canbusstats',
-            title: 'Canbus stats',
+            title: 'CAN bus statistics',
             path: '/canbusStats',
-            icon: mdiBus,
+            icon: mdiCableData,
             showInNavi: true,
             alwaysShow: false,
             position: 95,

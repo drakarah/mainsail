@@ -1,13 +1,14 @@
 {
     "CanbusStats": {
-        "BusName": "Can bus",
-        "ByStatPanelTitle": "All statistics per device",
-        "ByStatSection": "By stat",
+        "BusName": "CAN bus",
+        "ByMCUPanelTitle": "All statistics per mcu",
+        "ByStatPanelTitle": "All statistics per metric",
+        "ByStatSection": "By metric",
         "CanbusSection": "CAN bus",
         "ClearData": "Clear data",
         "ContextPanelTitle": "Print context",
         "ContextSection": "Context",
-        "DataCleared": "Canbus stats history cleared",
+        "DataCleared": "CAN bus statistics history cleared",
         "Description": "Round-trip time, retransmits, invalid frames and CPU load of the host and all MCUs on the CAN bus, aggregated in 2 second buckets. Records from app start, keeps up to 12 hours of history.",
         "ErrorsChart": "Communication errors",
         "HeaterChart": "Heater power",
@@ -38,7 +39,7 @@
         "NoDataYet": "Connected, but no CAN bus statistics are available yet.",
         "PerfChart": "MCU performance",
         "TempChart": "Temperature sensors",
-        "Title": "Canbus stats",
+        "Title": "CAN bus statistics",
         "Tooltips": {
             "BytesInvalid": "Cumulative bytes received from the MCU that were discarded — either because they failed the CRC check (bit errors caused by electrical noise or a defective cable) or because they arrived with an unexpected sequence number. Any non-zero value warrants investigation.",
             "BytesRead": "Cumulative bytes received by the Klipper host from the MCU since the process started. Monotonically increasing.",
@@ -75,6 +76,6 @@
         }
     },
     "Router": {
-        "Canbus stats": "Canbus stats"
+        "CAN bus statistics": "CAN bus stats"
     }
 }

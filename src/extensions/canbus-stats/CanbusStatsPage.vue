@@ -1,35 +1,38 @@
 <template>
     <div>
-        <panel :title="$t('CanbusStats.Title')" :icon="mdiBus" card-class="pb-2">
+        <panel :title="$t('CanbusStats.Title')" :icon="mdiCableData" card-class="pb-2">
+             <v-card-text>
             <v-row align="center" no-gutters>
                 <v-col cols="12" sm="8">
                     <p class="body-2 text-primary--text mb-0">{{ $t('CanbusStats.Description') }}</p>
                 </v-col>
                 <v-col cols="12" sm="4" class="text-right">
-                    <v-chip v-if="present" small color="success" class="mr-2">
+                    <!-- <v-chip v-if="present" small color="success" class="mr-2">
                         <v-icon small left> {{ mdiCheck }} </v-icon>
                         {{ $t('CanbusStats.Live') }}
-                    </v-chip>
+                    </v-chip> -->
                     <v-btn x-small color="warning" text @click="clearData">
                         <v-icon small left> {{ mdiDelete }} </v-icon>
                         {{ $t('CanbusStats.ClearData') }}
                     </v-btn>
                 </v-col>
             </v-row>
+            </v-card-text>
         </panel>
 
         <v-alert v-if="present && !hasAnyData" type="info" text class="mt-0">
             {{ $t('CanbusStats.NoDataYet') }}
         </v-alert>
 
-        <!-- CAN bus -->
-        <template v-if="canbusDevices.length > 0">
+        <panel  :icon="mdiChartLine" :title="$t('CanbusStats.ByMCUPanelTitle')" :collapsible="true" card-class="pb-2">
+              <!-- CAN bus -->
+            <template v-if="canbusDevices.length > 0">
             <div class="subheading pa-3">{{ $t('CanbusStats.CanbusSection') }}</div>
             <v-row>
-                <v-col v-for="(dev, i) in canbusDevices" :key="dev" cols="12" md="6">
+                <v-col v-for="(dev, i) in canbusDevices" :key="dev" cols="12" md="3">
                     <panel
-                        :title="dev"
-                        :icon="mdiBus"
+                        :title="stripName(dev)"
+                        :icon="mdiCableData"
                         card-class="pb-2"
                         collapsible
                         :margin-bottom="i < canbusDevices.length - 1">
@@ -46,7 +49,6 @@
                                         <span v-on="on">
                                             {{ $t(def.labelKey) }}:
                                             <b>{{ latestFor(dev, def.key) }}</b>
-                                            <span class="text--secondary">{{ $t(def.yLabelKey) }}</span>
                                         </span>
                                     </template>
                                     {{ $t(def.tooltipKey) }}
@@ -62,26 +64,26 @@
         <template v-if="mcuDevices.length > 0">
             <div class="subheading pa-3">{{ $t('CanbusStats.McuSection') }}</div>
             <v-row>
-                <v-col v-for="dev in mcuDevices" :key="dev" cols="12">
-                    <panel :title="dev" :icon="mdiChip" card-class="pb-2" collapsible>
+                <v-col v-for="dev in mcuDevices" :key="dev" cols="6">
+                    <panel :title="stripName(dev)" :icon="mdiChip" card-class="pb-2" collapsible>
                         <v-row>
-                            <v-col cols="12" md="6">
+                            <v-col cols="12" md="4">
                                 <div class="caption pa-1">{{ $t('CanbusStats.ErrorsChart') }}</div>
                                 <canbus-stats-chart :series="seriesFor(dev, [errorDef, invalidDef], ['left', 'left'])" :y-label="'bytes'" />
                             </v-col>
-                            <v-col cols="12" md="6">
+                            <v-col cols="12" md="4">
                                 <div class="caption pa-1">{{ $t('CanbusStats.TrafficChart') }}</div>
                                 <canbus-stats-chart :series="seriesFor(dev, [writeDef, readDef], ['left', 'left'])" :y-label="'bytes'" />
                             </v-col>
-                            <v-col cols="12" md="6">
+                            <!-- <v-col cols="12" md="3">
                                 <div class="caption pa-1">{{ $t('CanbusStats.PerfChart') }}</div>
                                 <canbus-stats-chart
                                     :series="seriesFor(dev, [awakeDef, taskAvgDef, taskStdDef], ['left', 'right', 'right'])"
                                     :y-label="'%'"
                                     :y-label-2="'µs'"
                                     :y-max="100" />
-                            </v-col>
-                            <v-col cols="12" md="6">
+                            </v-col> -->
+                            <v-col cols="12" md="4">
                                 <div class="caption pa-1">{{ $t('CanbusStats.LatencyChart') }}</div>
                                 <canbus-stats-chart :series="seriesFor(dev, [srttDef, rtoDef], ['left', 'left'])" :y-label="'ms'" />
                             </v-col>
@@ -97,7 +99,7 @@
                                     <template #activator="{ on }">
                                         <span v-on="on">
                                             {{ $t(def.labelKey) }}:
-                                            <b>{{ latestFor(dev, def.key) }}</b>
+                                            <b>{{ latestFor(dev, def.key) }}</b>&nbsp;
                                             <span class="text--secondary">{{ $t(def.yLabelKey) }}</span>
                                         </span>
                                     </template>
@@ -118,23 +120,29 @@
             </panel>
         </template>
 
+    </panel>
+
+
+    <panel  :title="$t('CanbusStats.ByStatPanelTitle')"
+            :icon="mdiChartLine"
+            card-class="canbus-stats-by-stat-panel" :collapsible="true">
         <!-- By stat -->
         <template v-if="statDevices.length > 0">
-            <div class="subheading pa-3">{{ $t('CanbusStats.ByStatSection') }}</div>
-            <panel :title="$t('CanbusStats.ByStatPanelTitle')" card-class="pb-2" :margin-bottom="false">
+            <!-- <div class="subheading pa-3">{{ $t('CanbusStats.ByStatSection') }}</div>
+            <panel :title="$t('CanbusStats.ByStatPanelTitle')" card-class="pb-2" :margin-bottom="false"> -->
                 <v-row>
-                    <v-col v-for="def in allStatDefs" :key="def.key" cols="12" md="6">
+                    <v-col v-for="def in allStatDefs" :key="def.key" cols="12" md="3">
                         <div class="caption pa-1">{{ $t(def.labelKey) }}</div>
                         <canbus-stats-chart :series="byStatSeries(def)" :y-label="$t(def.yLabelKey)" />
                     </v-col>
                 </v-row>
-            </panel>
+            <!-- </panel> -->
         </template>
 
         <!-- Context -->
         <template v-if="contextKeys.length > 0">
-            <div class="subheading pa-3">{{ $t('CanbusStats.ContextSection') }}</div>
-            <panel :title="$t('CanbusStats.ContextPanelTitle')" card-class="pb-2" :margin-bottom="false">
+            <!-- <div class="subheading pa-3">{{ $t('CanbusStats.ContextSection') }}</div> -->
+            <!-- <panel :title="$t('CanbusStats.ContextPanelTitle')" card-class="pb-2" :margin-bottom="false"> -->
                 <v-row>
                     <v-col v-if="sensorKeys.length > 0" cols="12" md="6">
                         <div class="caption pa-1">{{ $t('CanbusStats.TempChart') }}</div>
@@ -145,12 +153,14 @@
                         <canbus-stats-chart :series="heaterSeries" :y-label="''" :y-max="1" />
                     </v-col>
                 </v-row>
-            </panel>
+            <!-- </panel> -->
         </template>
         <!-- Local snack notification (Mainsail has no global snack bus) -->
         <v-snackbar v-model="snackbar" :timeout="3000" bottom>
             {{ snackText }}
         </v-snackbar>
+    </panel>        
+
     </div>
 </template>
 
@@ -158,7 +168,7 @@
 import Component from 'vue-class-component'
 import { Mixins } from 'vue-property-decorator'
 import BaseMixin from '@/components/mixins/base'
-import { mdiBus, mdiCheck, mdiChip, mdiDelete, mdiMonitor } from '@mdi/js'
+import { mdiChartLine, mdiCableData, mdiBus, mdiCheck, mdiChip, mdiDelete, mdiMonitor } from '@mdi/js'
 import CanbusStatsChart from './CanbusStatsChart.vue'
 import { CANBUS_STAT_DEFS, DEVICE_PALETTE, HOST_STAT_DEFS, MCU_STAT_DEFS, type Point, type StatDef } from './buckets'
 import { getBuffers, getCanbusRevision, hasCanbusStats, resetBuffers, STORAGE_KEY } from './store'
@@ -167,11 +177,12 @@ import { getBuffers, getCanbusRevision, hasCanbusStats, resetBuffers, STORAGE_KE
     components: { CanbusStatsChart },
 })
 export default class CanbusStatsPage extends Mixins(BaseMixin) {
-    mdiBus = mdiBus
+    mdiChartLine = mdiChartLine
     mdiCheck = mdiCheck
     mdiChip = mdiChip
     mdiDelete = mdiDelete
     mdiMonitor = mdiMonitor
+    mdiCableData = mdiCableData
 
     snackbar = false
     snackText = ''
@@ -322,6 +333,11 @@ export default class CanbusStatsPage extends Mixins(BaseMixin) {
                 return { name, color: DEVICE_PALETTE[i % DEVICE_PALETTE.length], data }
             })
             .filter((s): s is { name: string; color: string; data: Point[] } => s !== null)
+    }
+
+    stripName(dev: string): string {
+        const name = dev.replace(/^(canbus_stats|mcu)/, '').trim()
+        return name === '' ? "main" : name
     }
 
     /**
