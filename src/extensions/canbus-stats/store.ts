@@ -326,20 +326,25 @@ export function restoreFromStorage(): void {
         if (!parsed?.series) return
 
         const now = Date.now()
+        const cutoff = now - HISTORY_MS
         for (const [device, perStat] of Object.entries(parsed.series)) {
             const perDevice: DeviceSeries = {}
-            buffers[device] = perDevice
             for (const [stat, pts] of Object.entries(perStat)) {
                 const series: Point[] = pts.map(([x, y]) => ({ x, y }))
                 // prune anything older than the history window
-                const cutoff = now - HISTORY_MS
                 while (series.length > 0 && series[0].x < cutoff) series.shift()
+                if (series.length === 0) continue
                 perDevice[stat] = series
 
                 const acc = makeBuckets(statModeForKey(stat))
                 acc.bucketEnd = (Math.floor(now / BUCKET_MS) + 1) * BUCKET_MS
+                // seed the carry-forward value so the first bucket close after a reload
+                // emits the last known value instead of a spurious drop to zero
+                acc.lastEmitted = series[series.length - 1].y
                 accumulators.set(`${device}|${stat}`, acc)
             }
+
+            if (Object.keys(perDevice).length > 0) buffers[device] = perDevice
         }
     } catch (e) {
         window.console.error('canbus stats: could not restore history', e)

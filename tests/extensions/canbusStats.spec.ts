@@ -9,7 +9,7 @@ import type { Module, Store } from 'vuex'
 
 Vue.use(Vuex)
 
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest'
 import {
     BUCKET_MS,
     CANBUS_STAT_DEFS,
@@ -28,6 +28,7 @@ import {
     handleStatusPayload,
     recordSample,
     resetBuffers,
+    restoreFromStorage,
 } from '@/extensions/canbus-stats/store'
 import canbusExtension from '@/extensions/canbus-stats/index'
 import type { CanbusStatsState } from '@/extensions/canbus-stats/store'
@@ -233,9 +234,68 @@ describe('handleStatusPayload routing', () => {
     })
 })
 
-describe('recordSample', () => {
+
+describe('restoreFromStorage', () => {
     beforeEach(() => {
         resetBuffers()
+    })
+
+    function stubLocalStorage(value: string | null) {
+        const storage = { getItem: vi.fn(() => value), setItem: vi.fn(), removeItem: vi.fn() }
+        vi.stubGlobal('window', { localStorage: storage, console })
+        return storage
+    }
+
+    afterEach(() => {
+        vi.unstubAllGlobals()
+    })
+
+    it('seeds the carry-forward value from the last stored point (no drop to zero)', () => {
+        // anchor to the currently open bucket; restore sets bucketEnd to its end (Date.now inside)
+        const openEnd = (Math.floor(Date.now() / BUCKET_MS) + 1) * BUCKET_MS
+        stubLocalStorage(JSON.stringify({
+            version: 1,
+            series: { canbus_stats: { rx_error: [[openEnd - BUCKET_MS * 2, 14]] } },
+        }))
+        restoreFromStorage()
+        const restored = getBuffers()['canbus_stats']?.rx_error
+        expect(restored).toHaveLength(1)
+        expect(restored![0].y).toBe(14)
+
+        // a fresh canbus_stats update closes the open bucket — the emitted point must carry
+        // forward the restored value (14), not the default 0 (the pre-fix phantom dip)
+        const store = freshStore()
+        store.registerModule('canbusStats', moduleFor())
+        const changed = handleStatusPayload(asRoot(store), { canbus_stats: { rx_error: 16 } }, openEnd + 1)
+        expect(changed).toBe(true)
+        const after = getBuffers()['canbus_stats']?.rx_error
+        const last = after![after!.length - 1]
+        expect(last.y).toBe(14)
+        expect(after!.some((p) => p.y === 0)).toBe(false)
+    })
+
+    it('skips series pruned to empty and drops devices with no remaining series', () => {
+        const now = Date.now()
+        const openEnd = (Math.floor(now / BUCKET_MS) + 1) * BUCKET_MS
+        const old = now - HISTORY_MS - BUCKET_MS // outside the 12 h window (full-bucket margin)
+        stubLocalStorage(JSON.stringify({
+            version: 1,
+            series: {
+                'mcu old': { srtt: [[old, 1]] },
+                canbus_stats: { rx_error: [[openEnd - BUCKET_MS * 2, 1]] },
+            },
+        }))
+
+        restoreFromStorage()
+        const buffers = getBuffers()
+        expect(buffers['mcu old']).toBeUndefined()
+        expect(buffers['canbus_stats'].rx_error).toHaveLength(1)
+    })
+
+    it('ignores corrupt storage', () => {
+        stubLocalStorage('not json at all')
+        restoreFromStorage()
+        expect(Object.keys(getBuffers())).toEqual([])
     })
 
     it('does not fabricate fill points across a huge clock gap (sleep/reconnect)', () => {
@@ -251,6 +311,12 @@ describe('recordSample', () => {
         // the series must stay small: no millions of carry-forward points
         expect(getBuffers()['mcu'].srtt.length).toBeLessThan(before + 10)
         expect(getBuffers()['mcu'].srtt.length).toBeLessThan(100)
+    })
+})
+
+describe('recordSample', () => {
+    beforeEach(() => {
+        resetBuffers()
     })
 
     it('records scaled values into the right device/stat bucket', () => {
