@@ -7,6 +7,10 @@
 // aggregation window size in ms
 export const BUCKET_MS = 2_000
 
+// gaps larger than this are real gaps (sleep, reconnect, clock skip), not omitted
+// moonraker updates — carry-forward fill is capped to avoid fabricating millions of points
+export const MAX_CARRY_MS = BUCKET_MS * 10
+
 // 12 h of history — prune threshold (same as the standalone dashboard)
 export const HISTORY_MS = 12 * 60 * 60 * 1000
 
@@ -250,6 +254,13 @@ export function flushBuckets(b: BucketAccumulator, ts: number): Point[] {
     if (b.bucketEnd === 0) {
         // Align the first bucket end to the next BUCKET_MS boundary
         b.bucketEnd = (Math.floor(ts / BUCKET_MS) + 1) * BUCKET_MS
+    }
+
+    if (ts - b.bucketEnd > MAX_CARRY_MS) {
+        // huge gap (e.g. machine slept, websocket reconnected): the series just stops
+        // at the old data and resumes from now — no fabricated fill points
+        b.bucketEnd = (Math.floor(ts / BUCKET_MS) + 1) * BUCKET_MS
+        return pts
     }
 
     while (ts >= b.bucketEnd) {

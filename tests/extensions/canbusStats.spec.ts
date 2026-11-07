@@ -238,6 +238,21 @@ describe('recordSample', () => {
         resetBuffers()
     })
 
+    it('does not fabricate fill points across a huge clock gap (sleep/reconnect)', () => {
+        const store = freshStore()
+        store.registerModule('canbusStats', moduleFor())
+
+        const t0 = Math.floor(Date.now() / BUCKET_MS) * BUCKET_MS
+        recordSample('mcu', 'srtt', 'last', (v) => v * 1000, t0 + 100, 0.001)
+        const before = getBuffers()['mcu'].srtt.length
+
+        // flush 3 years later — a real gap, not omitted updates
+        handleStatusPayload(asRoot(store), { mcu: { last_stats: { srtt: 0.002 } } }, t0 + 3 * 365 * 24 * 3600 * 1000)
+        // the series must stay small: no millions of carry-forward points
+        expect(getBuffers()['mcu'].srtt.length).toBeLessThan(before + 10)
+        expect(getBuffers()['mcu'].srtt.length).toBeLessThan(100)
+    })
+
     it('records scaled values into the right device/stat bucket', () => {
         recordSample('mcu', 'mcu_task_avg', 'avg', (v) => v * 1e6, base + 100, 0.0015)
         recordSample('mcu', 'mcu_task_avg', 'avg', (v) => v * 1e6, base + 1900, 0.0025)
